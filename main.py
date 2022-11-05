@@ -8,6 +8,8 @@ from pyrus_client import PyrusClient
 from equalizer import Equalizer
 
 
+logger.add("deleted_ticket_ids.txt", format="{message}", level="DEBUG")
+
 HOUR_PAIRS_OF_DAY = (("00", "03"), ("04", "07"), ("08", "11"), ("12", "15"), ("16", "19"), ("20", "23"))
 FORM_IDS_TO_CLEAN = [522023]  # TODO: make config and read it from it
 
