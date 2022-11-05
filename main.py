@@ -44,12 +44,24 @@ def inspect(dates: list[date]) -> None:
 
 
 def terminate_tickets(days: list[date]):
-    pyrus_client = PyrusClient()
+    pyrus_client = __configure_pyrus_client("creds.txt")
     with DatesLogger() as log_manager:
         for day in days:
             __terminate_tickets_by(day, pyrus_client, log_manager)
             logger.info(f"ticket of {day.isoformat()} are terminated")
             log_manager.write(day)
+
+
+def __configure_pyrus_client(path: str) -> PyrusClient:
+    """
+    [0] - login
+    [1] - security key
+    :param path: path to file with pyrus credentials
+    :return: PyrusClient instance
+    """
+    with open(path, "r") as fp:
+        credentials = fp.readlines()
+    return PyrusClient(credentials[0], credentials[1]).authenticate()
 
 
 def __terminate_tickets_by(day: date, pyrus_client: PyrusClient, log_manager: DatesLogger) -> None:
