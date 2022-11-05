@@ -77,7 +77,7 @@ def __terminate_tickets_by(day: date, pyrus_client: PyrusClient, log_manager: Da
     for ticket_id in ticket_ids:
         with Equalizer(seconds=1, log_manager=log_manager):
             pyrus_client.delete_ticket(ticket_id)
-            logger.debug(f"ticket with id {ticket_id} deleted")
+            logger.debug(f"{day.isoformat().center(20)}: ticket with id {ticket_id} deleted")
 
 
 def __get_ticket_ids(day: date, pyrus_client: PyrusClient) -> Generator:
