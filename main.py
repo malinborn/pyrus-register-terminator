@@ -28,7 +28,9 @@ def __calculate_start_date(used_dates: list[date]) -> date:
     if used_dates:
         return used_dates[-1]
     else:
-        return date.fromisoformat("2018-06-18")  # first ticket creation date
+        return date.fromisoformat(input('write here the creation date of the first ticket '
+                                        'in the register in ISO format like:\n2018-06-18\n\n'
+                                        'here, please: '))
 
 
 def inspect(dates: list[date]) -> None:
