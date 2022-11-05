@@ -30,7 +30,7 @@ class DatesLogger:
 
     def write(self, log: date):
         with open(self.__LOG_FILE_NAME, "a") as fp:
-            fp.write(self.__convert_date_into_string(log))
+            fp.write(f"{self.__convert_date_into_string(log)}\n")
             logger.info(f"{log} written")
 
     def write_exception(self, exception: int | str):
