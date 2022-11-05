@@ -1,7 +1,7 @@
 import requests
 
 from typing import Self
-from datetime import datetime
+from datetime import date
 
 
 class PyrusClient:
@@ -18,13 +18,13 @@ class PyrusClient:
         self.token = f'Bearer {response.json()["access_token"]}'
         return self
 
-    def get_register(self, form_id: int, date: datetime, hours: tuple[str, str]) -> dict:
+    def get_register(self, form_id: int, day: date, hours: tuple[str, str]) -> dict:
         response = requests.post(f"https://api.pyrus.com/v4/forms/{form_id}/register",
                                  headers=self.__set_headers(),
-                                 json={"created_after": date.strftime(f"%Y-%m-%dT{hours[0]}:00:00Z"),
-                                       "created_before": date.strftime(f"%Y-%m-%dT{hours[1]}:59:00Z"),
+                                 json={"created_after": day.strftime(f"%Y-%m-%dT{hours[0]}:00:00Z"),
+                                       "created_before": day.strftime(f"%Y-%m-%dT{hours[1]}:59:00Z"),
                                        "include_archived": "y",
-                                       "field_ids": ["1"]})
+                                       "field_ids": [1]})
         return response.json()
 
     def delete_ticket(self, ticket_id: int):
