@@ -43,7 +43,7 @@ class DatesLogger:
 
     @staticmethod
     def __convert_string_into_date(date_to_convert: str) -> date:
-        return date.fromisoformat(date_to_convert)
+        return date.fromisoformat(date_to_convert.strip())
 
     def dispose(self):
         DatesLogger.__singleton_alive = False
