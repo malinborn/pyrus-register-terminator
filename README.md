@@ -13,7 +13,7 @@ When would you need it?
 ### Prerequisites:
 - Python 3.11+;
 - Admin access to pyrus forms you want to clean;
-- "creds.txt" file with your login and security key. It should contains two rows - first for the login and second for the key;
+- "creds.txt" file with your login and security key. It should contain two rows - first for the login and second for the key;
 - You have installed dependencies - ```pip install requirements.txt```.
 ---
 
