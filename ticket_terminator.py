@@ -17,7 +17,7 @@ class TicketTerminator:
 
         self.__pyrus_credential_path: str = pyrus_cred_path
         self.__pyrus_client: PyrusClient = self.__configure_pyrus_client()
-        self.forms_to_clean_ids: list[int] = list()
+        self.__forms_to_clean_ids: list[int] = list()
 
         self.__days_to_preserve: int = 365 * 2
         self.__processed_dates: Optional[list[date]] = None
@@ -32,7 +32,7 @@ class TicketTerminator:
         :return: PyrusClient instance
         """
         with open(self.__pyrus_credential_path, "r") as fp:
-            credentials = fp.readlines()
+            credentials = [x.strip() for x in fp.readlines()]
         return PyrusClient(credentials[0], credentials[1]).authenticate()
 
     def preserve(self, days: int) -> Self:
@@ -44,7 +44,7 @@ class TicketTerminator:
         return self
 
     def to_clean(self, form_ids: list[int]) -> Self:
-        self.forms_to_clean_ids.extend(form_ids)
+        self.__forms_to_clean_ids.extend(form_ids)
         return self
 
     def get_dates_to_terminate(self) -> Self:
@@ -102,7 +102,7 @@ class TicketTerminator:
 
     def __get_ticket_ids(self, day: date) -> Generator:
         tickets_json = list()
-        for form_id in FORM_IDS:
+        for form_id in self.__forms_to_clean_ids:
             logger.info(f"collecting tickets of {form_id}")
             tickets_json.extend(self.__collect_tickets(day, form_id))
             logger.info(f"tickets of {form_id} are collected")
