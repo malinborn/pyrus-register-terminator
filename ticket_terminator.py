@@ -8,9 +8,6 @@ from pyrus_client import PyrusClient
 from equalizer import Equalizer
 
 
-FORM_IDS = [522023]  # TODO: make config and read it from it
-
-
 class TicketTerminator:
 
     __HOUR_PAIRS_OF_DAY = (("00", "03"), ("04", "07"), ("08", "11"), ("12", "15"), ("16", "19"), ("20", "23"))
