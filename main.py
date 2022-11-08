@@ -16,26 +16,26 @@ FORM_IDS_TO_CLEAN = [522023]  # TODO: make config and read it from it
 
 class TicketTerminator:
     def __init__(self, pyrus_cred_path: str):
-        self.pyrus_credential_path: str = pyrus_cred_path
-        self.pyrus_client: PyrusClient = self.__configure_pyrus_client()
-        self.processed_dates: Optional[list[date]] = None
-        self.dates: list[date] = list()
+        self.__pyrus_credential_path: str = pyrus_cred_path
+        self.__pyrus_client: PyrusClient = self.__configure_pyrus_client()
+        self.__processed_dates: Optional[list[date]] = None
+        self.__dates: list[date] = list()
         self.forms_to_clean_ids: list[int] = list()
 
     def get_dates_to_terminate(self) -> Self:
         with DatesLogger() as log_manager:
-            self.processed_dates = log_manager.read_logs()
+            self.__processed_dates = log_manager.read_logs()
             start_date: date = self.__calculate_start_date()
         days_to_delete_amount = ((date.today() - timedelta(days=(365 * 2))) - start_date).days
         days: list[date] = list()
         for days_increment in range(days_to_delete_amount):
             days.append(start_date + timedelta(days=days_increment))
-        self.dates = days
+        self.__dates = days
         return self
 
     def __calculate_start_date(self) -> date:
-        if self.processed_dates:
-            return self.processed_dates[-1]
+        if self.__processed_dates:
+            return self.__processed_dates[-1]
         else:
             return date.fromisoformat(input('write here the creation date of the first ticket '
                                             'in the register in ISO format like:\n2018-06-18\n\n'
@@ -44,11 +44,11 @@ class TicketTerminator:
     def inspect(self) -> Self:
         print("FIRST 100 DATES")
         print("#" * 30)
-        pprint(self.dates[:100:])
+        pprint(self.__dates[:100:])
         print("#" * 30)
         print("LAST 100 DATES")
         print("#" * 30)
-        pprint(self.dates[len(self.dates) - 100::])
+        pprint(self.__dates[len(self.__dates) - 100::])
         print("#" * 30)
         input("IF DATES ARE CORRECT - PRESS ENTER       \n"
               "                                         \n"
@@ -61,7 +61,7 @@ class TicketTerminator:
 
     def terminate_tickets(self):
         with DatesLogger() as log_manager:
-            for day in self.dates:
+            for day in self.__dates:
                 logger.info(f"terminating tickets of {day.isoformat()}...")
                 self.__terminate_tickets_by(day, log_manager)
                 logger.info(f"ticket of {day.isoformat()} are terminated")
@@ -73,7 +73,7 @@ class TicketTerminator:
         [1] - security key
         :return: PyrusClient instance
         """
-        with open(self.pyrus_credential_path, "r") as fp:
+        with open(self.__pyrus_credential_path, "r") as fp:
             credentials = fp.readlines()
         return PyrusClient(credentials[0], credentials[1]).authenticate()
 
@@ -82,7 +82,7 @@ class TicketTerminator:
         ticket_ids = self.__get_ticket_ids(day)
         for ticket_id in ticket_ids:
             with Equalizer(seconds=1, log_manager=log_manager):
-                self.pyrus_client.delete_ticket(ticket_id)
+                self.__pyrus_client.delete_ticket(ticket_id)
                 logger.debug(f"{day.isoformat().center(20)}: ticket with id {ticket_id} deleted")
 
     def __get_ticket_ids(self, day: date) -> Generator:
@@ -98,7 +98,7 @@ class TicketTerminator:
         for hour_pair in HOUR_PAIRS_OF_DAY:
             logger.info(f"collecting tickets from {hour_pair[0]} to {hour_pair[1]}...")
             try:
-                collected_tickets.extend(self.pyrus_client.get_register(form_id, day, hour_pair)["tasks"])
+                collected_tickets.extend(self.__pyrus_client.get_register(form_id, day, hour_pair)["tasks"])
                 logger.info("tickets collected")
             except Exception as ex:
                 logger.error(ex)
