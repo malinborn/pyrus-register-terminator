@@ -17,13 +17,26 @@ class TicketTerminator:
 
     def __init__(self, pyrus_cred_path: str):
         logger.add("deleted_ticket_ids.txt", format="{message}", level="DEBUG")
+
         self.__pyrus_credential_path: str = pyrus_cred_path
         self.__pyrus_client: PyrusClient = self.__configure_pyrus_client()
-        self.__processed_dates: Optional[list[date]] = None
-        self.__dates: list[date] = list()
-        self.__termination_delay: int | float = 1
         self.forms_to_clean_ids: list[int] = list()
+
         self.__days_to_preserve: int = 365 * 2
+        self.__processed_dates: Optional[list[date]] = None
+        self.__dates_to_terminate: list[date] = list()
+
+        self.__termination_delay: int | float = 1
+
+    def __configure_pyrus_client(self) -> PyrusClient:
+        """
+        [0] - login
+        [1] - security key
+        :return: PyrusClient instance
+        """
+        with open(self.__pyrus_credential_path, "r") as fp:
+            credentials = fp.readlines()
+        return PyrusClient(credentials[0], credentials[1]).authenticate()
 
     def preserve(self, days: int) -> Self:
         self.__days_to_preserve = days
@@ -45,7 +58,7 @@ class TicketTerminator:
         days: list[date] = list()
         for days_increment in range(days_to_delete_amount):
             days.append(start_date + timedelta(days=days_increment))
-        self.__dates = days
+        self.__dates_to_terminate = days
         return self
 
     def __calculate_start_date(self) -> date:
@@ -59,11 +72,11 @@ class TicketTerminator:
     def inspect(self) -> Self:
         print("FIRST 100 DATES")
         print("#" * 30)
-        pprint(self.__dates[:100:])
+        pprint(self.__dates_to_terminate[:100:])
         print("#" * 30)
         print("LAST 100 DATES")
         print("#" * 30)
-        pprint(self.__dates[len(self.__dates) - 100::])
+        pprint(self.__dates_to_terminate[len(self.__dates_to_terminate) - 100::])
         print("#" * 30)
         input("IF DATES ARE CORRECT - PRESS ENTER       \n"
               "                                         \n"
@@ -76,21 +89,11 @@ class TicketTerminator:
 
     def terminate_tickets(self):
         with DatesLogger() as log_manager:
-            for day in self.__dates:
+            for day in self.__dates_to_terminate:
                 logger.info(f"terminating tickets of {day.isoformat()}...")
                 self.__terminate_tickets_by(day, log_manager)
                 logger.info(f"ticket of {day.isoformat()} are terminated")
                 log_manager.write(day)
-
-    def __configure_pyrus_client(self) -> PyrusClient:
-        """
-        [0] - login
-        [1] - security key
-        :return: PyrusClient instance
-        """
-        with open(self.__pyrus_credential_path, "r") as fp:
-            credentials = fp.readlines()
-        return PyrusClient(credentials[0], credentials[1]).authenticate()
 
     def __terminate_tickets_by(self, day: date, log_manager: DatesLogger) -> None:
         logger.info(f"collecting tickets for {day.isoformat()}")
