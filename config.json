@@ -1,0 +1,6 @@
+{
+  "pyrus_credentials_path": "creds.txt",
+  "form_ids_to_clean": [123456],
+  "ticket_termination_delay": 1,
+  "days_to_preserve": 700
+}

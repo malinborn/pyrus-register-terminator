@@ -21,7 +21,17 @@ class TicketTerminator:
         self.__pyrus_client: PyrusClient = self.__configure_pyrus_client()
         self.__processed_dates: Optional[list[date]] = None
         self.__dates: list[date] = list()
+        self.__termination_delay: int | float = 1
         self.forms_to_clean_ids: list[int] = list()
+        self.__days_to_preserve: int = 365 * 2
+
+    def preserve(self, days: int) -> Self:
+        self.__days_to_preserve = days
+        return self
+
+    def with_termination_delay(self, delay: float | int) -> Self:
+        self.__termination_delay = delay
+        return self
 
     def to_clean(self, form_ids: list[int]) -> Self:
         self.forms_to_clean_ids.extend(form_ids)
@@ -31,7 +41,7 @@ class TicketTerminator:
         with DatesLogger() as log_manager:
             self.__processed_dates = log_manager.read_logs()
             start_date: date = self.__calculate_start_date()
-        days_to_delete_amount = ((date.today() - timedelta(days=(365 * 2))) - start_date).days
+        days_to_delete_amount = ((date.today() - timedelta(days=self.__days_to_preserve)) - start_date).days
         days: list[date] = list()
         for days_increment in range(days_to_delete_amount):
             days.append(start_date + timedelta(days=days_increment))
@@ -86,7 +96,7 @@ class TicketTerminator:
         logger.info(f"collecting tickets for {day.isoformat()}")
         ticket_ids = self.__get_ticket_ids(day)
         for ticket_id in ticket_ids:
-            with Equalizer(seconds=1, log_manager=log_manager):
+            with Equalizer(seconds=self.__termination_delay, log_manager=log_manager):
                 self.__pyrus_client.delete_ticket(ticket_id)
                 logger.debug(f"{day.isoformat().center(20)}: ticket with id {ticket_id} deleted")
 

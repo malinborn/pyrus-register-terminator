@@ -1,14 +1,20 @@
+import json
 from ticket_terminator import TicketTerminator
 
 
-FORM_IDS = [522023]  # TODO: make config and read it from it
-
-
 def main():
-    ticket_termination = TicketTerminator("creds.txt").to_clean(FORM_IDS)
-    ticket_termination.get_dates_to_terminate()\
-                      .inspect()\
-                      .terminate_tickets()
+    with open("config.json", "r") as fp:
+        config = json.load(fp)
+
+    ticket_termination = TicketTerminator(config["pyrus_credentials_path"])\
+        .to_clean(config["form_ids_to_clean"])\
+        .with_termination_delay(config["ticket_termination_delay"])\
+        .preserve(config["days_to_preserve"])
+
+    ticket_termination\
+        .get_dates_to_terminate()\
+        .inspect()\
+        .terminate_tickets()
 
 
 if __name__ == "__main__":
