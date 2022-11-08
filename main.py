@@ -8,19 +8,24 @@ from pyrus_client import PyrusClient
 from equalizer import Equalizer
 
 
-logger.add("deleted_ticket_ids.txt", format="{message}", level="DEBUG")
-
-HOUR_PAIRS_OF_DAY = (("00", "03"), ("04", "07"), ("08", "11"), ("12", "15"), ("16", "19"), ("20", "23"))
-FORM_IDS_TO_CLEAN = [522023]  # TODO: make config and read it from it
+FORM_IDS = [522023]  # TODO: make config and read it from it
 
 
 class TicketTerminator:
+
+    __HOUR_PAIRS_OF_DAY = (("00", "03"), ("04", "07"), ("08", "11"), ("12", "15"), ("16", "19"), ("20", "23"))
+
     def __init__(self, pyrus_cred_path: str):
+        logger.add("deleted_ticket_ids.txt", format="{message}", level="DEBUG")
         self.__pyrus_credential_path: str = pyrus_cred_path
         self.__pyrus_client: PyrusClient = self.__configure_pyrus_client()
         self.__processed_dates: Optional[list[date]] = None
         self.__dates: list[date] = list()
         self.forms_to_clean_ids: list[int] = list()
+
+    def to_clean(self, form_ids: list[int]) -> Self:
+        self.forms_to_clean_ids.extend(form_ids)
+        return self
 
     def get_dates_to_terminate(self) -> Self:
         with DatesLogger() as log_manager:
@@ -87,7 +92,7 @@ class TicketTerminator:
 
     def __get_ticket_ids(self, day: date) -> Generator:
         tickets_json = list()
-        for form_id in FORM_IDS_TO_CLEAN:
+        for form_id in FORM_IDS:
             logger.info(f"collecting tickets of {form_id}")
             tickets_json.extend(self.__collect_tickets(day, form_id))
             logger.info(f"tickets of {form_id} are collected")
@@ -95,7 +100,7 @@ class TicketTerminator:
 
     def __collect_tickets(self, day, form_id):
         collected_tickets = list()
-        for hour_pair in HOUR_PAIRS_OF_DAY:
+        for hour_pair in self.__HOUR_PAIRS_OF_DAY:
             logger.info(f"collecting tickets from {hour_pair[0]} to {hour_pair[1]}...")
             try:
                 collected_tickets.extend(self.__pyrus_client.get_register(form_id, day, hour_pair)["tasks"])
@@ -106,7 +111,7 @@ class TicketTerminator:
 
 
 def main():
-    ticket_termination = TicketTerminator("creds.txt")
+    ticket_termination = TicketTerminator("creds.txt").to_clean(FORM_IDS)
     ticket_termination.get_dates_to_terminate()\
                       .inspect()\
                       .terminate_tickets()
